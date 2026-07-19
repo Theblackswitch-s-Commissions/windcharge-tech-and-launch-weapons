@@ -1,0 +1,12 @@
+from flare import *
+
+temp = Objective('temp', type="dummy");
+
+@load
+def load():
+    print("Template reloaded!", color="green");
+
+@tick(name="tick")
+def tick():
+    with as(@a):
+        particle electric_spark
