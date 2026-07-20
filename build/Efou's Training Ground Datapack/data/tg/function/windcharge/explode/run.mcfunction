@@ -1,0 +1,1 @@
+summon minecraft:armor_stand ~ ~ ~ {Invisible:1b,small:1b,equipment:{feet:{id:"minecraft:poisonous_potato",components:{"minecraft:enchantments":{"tg:internal/windcharge_explode":1},"minecraft:equippable":{slot:"feet"}}}}}

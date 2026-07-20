@@ -1,0 +1,75 @@
+from flare import *
+
+# -------------------------------
+#  Detect shield blocking                            
+# -------------------------------
+
+@event('minecraft:player_hurt_entity',
+    {
+        "damage": {
+            "blocked": True
+        },
+        "player": {
+            "equipment": {
+                "mainhand": {
+                    "items": "#minecraft:axes"
+                }
+            }
+        }
+    }, 
+    name="stunslam_detect/block_shield"
+)
+def block_shield():
+    @s.add_tag('block_shield')
+
+# -------------------------------
+#  Detect windbursting                            
+# -------------------------------
+
+@event('minecraft:player_hurt_entity',
+    {
+        "player": {
+            "flags": {
+                "is_flying": False
+            },
+            "equipment": {
+                "mainhand": {
+                    "predicates": {
+                        "minecraft:enchantments": [
+                            {
+                                "enchantments": "minecraft:wind_burst"
+                            }
+                        ]
+                    }
+                }
+            },
+            "movement": {
+                "fall_distance": 1.5
+            }
+        }
+    },
+    name="stunslam_detect/wind_burst"
+)
+def wind_burst():
+    if @s[tag=blocked]:
+        pass
+
+# -------------------------------
+#  Detect landing                            
+# -------------------------------
+
+is_on_ground = add_predicate('stunslam_detect/on_ground', {
+	"condition": "minecraft:entity_properties",
+	"entity": "this",
+	"predicate": {
+		"can_see_sky": True,
+		"flags": {
+			"is_on_ground": True
+		}
+	}
+})
+
+@export('stunslam_detect/check_on_ground')
+def check_on_ground():
+    if is_on_ground:
+        @s.remove_tag('block_shield')

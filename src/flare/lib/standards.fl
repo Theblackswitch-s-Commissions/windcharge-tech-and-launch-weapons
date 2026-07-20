@@ -1,0 +1,6 @@
+
+here = block(~ ~ ~)
+self = @s
+
+def offs(x, y, z):
+    return here + block(x, y, z)

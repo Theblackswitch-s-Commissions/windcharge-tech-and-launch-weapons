@@ -4,20 +4,16 @@
             "libraries/SwitchLib-v2.0.3.zip",
             "src/datapack"
         ],
-        "name": "Template Datapack"
-    },
-    "resource_pack": {
-        "load": ["src/resourcepack"],
-        "name": "Template Resourcepack"
+        "name": "Efou's Training Ground Datapack"
     },
     "pipeline": [
         "plugins.aliases",
         "flare.beet"
     ],
-    "id": "template",
-    "name": "template",
+    "id": "tg",
+    "name": "tg",
     "description": "",
-    "version": "1.0.0a",
+    "version": "0.0.0a",
     "require": [
         "flare"
     ],

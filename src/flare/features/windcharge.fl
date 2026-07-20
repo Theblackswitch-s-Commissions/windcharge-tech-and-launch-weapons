@@ -1,0 +1,145 @@
+from flare import *
+
+use_windcharge = Objective("use_windcharge", type="minecraft.used:minecraft.wind_charge")
+server_data = Objective('tbs.server_data', add=False)
+
+add_enchantment('internal/windcharge_explode', {
+	"description": {
+		"text": "This enchantment is used internally. Use at own risk!",
+		"color": "red"
+	},
+	"anvil_cost": 2,
+	"effects": {
+		"minecraft:location_changed": [
+			{
+				"requirements": {
+					"condition": "minecraft:enchantment_active_check",
+					"active": False
+				},
+				"effect": {
+					"type": "minecraft:explode",
+					"attribute_to_user": True,
+					"knockback_multiplier": 1,
+					"radius": 3.5,
+					"create_fire": False,
+					"block_interaction": "trigger",
+					"small_particle": {
+						"type": "minecraft:gust"
+					},
+					"large_particle": {
+						"type": "minecraft:gust_emitter_small"
+					},
+					"sound": "minecraft:entity.wind_charge.wind_burst"
+				}
+			},
+			{
+				"effect": {
+					"type": "minecraft:run_function",
+					"function": "tg:windcharge/explode/reset"
+				}
+			}
+		]
+	},
+	"max_cost": {
+		"base": 55,
+		"per_level_above_first": 20
+	},
+	"max_level": 2,
+	"min_cost": {
+		"base": 5,
+		"per_level_above_first": 20
+	},
+	"slots": [
+		"feet"
+	],
+	"supported_items": "minecraft:poisonous_potato",
+	"weight": 5
+})
+
+@export('windcharge/explode/reset')
+def explode_reset():
+    runcommand('item replace entity @s armor.feet with air')
+    kill @s
+
+@export('windcharge/explode/run')
+def explode_run():
+    summon minecraft:armor_stand ~ ~ ~ {
+        Invisible:1b,
+        small:1b,
+        "equipment":{
+            "feet":{
+                "id":"minecraft:poisonous_potato",
+                "components":{
+                    "minecraft:enchantments":{
+                        "tg:internal/windcharge_explode":1
+                    },
+                    "minecraft:equippable":{
+                        "slot":"feet"
+                    }
+                }
+            }
+        }
+    }
+
+
+
+# -------------------------------
+#  Windcharge checks / summons                            
+# -------------------------------
+
+@event("consume_item", name="windcharge/use")
+def on_use_windcharge():
+    use_windcharge[@s] = 0;
+
+    # Modify the windcharge
+    marker = @n[type=marker,tag=motion_temp]
+    windcharge = @n[type=minecraft:wind_charge,tag=!summoned]
+
+    with positioned(0.0, 0.0, 0.0).positioned(^ ^ ^0.5):
+        summon marker ~ ~ ~ {Tags:[motion_temp]}
+
+
+    with rotated(@s).positioned(~ ~1.55 ~).as(windcharge):
+        
+        with positioned(^ ^ ^1.73).summon('minecraft:wind_charge'):
+            tag @s add summoned
+            tag @s add inside
+            @s.acceleration_power = 0.3
+            @s.Owner = windcharge.Owner
+            for i in range(3):
+                @s.Motion[i] = marker.Pos[i]
+
+        windcharge.kill()
+        @e[type=marker,tag=motion_temp].kill()
+
+def check_windcharge_collision():
+    # check for collission
+    with positioned(~-0.3 ~ ~-0.3).as(@e[type=minecraft:wind_charge,dy=0]).positioned(~-0.7 ~ ~-0.7).if(@s[dy=0]).at(@s):
+        @s.kill()
+        explode_run()
+
+@export('windcharge/raycast/init')
+def raycast_init():
+    
+    temp = 60
+
+@export('windcharge/raycast')
+def raycast():
+    temp = score(addr="#loop_count temp")
+    temp -= 1
+    if temp > 0:
+        with positioned(^ ^ ^0.1):
+            raycast()
+
+
+# -------------------------------
+#  Enabling / disabling                            
+# -------------------------------
+
+@export('windcharge/enable')
+def enable():
+    server_data['#windcharge_enabled'] = 1
+
+@export('windcharge/disable')
+def enable():
+    server_data['#windcharge_enabled'] = 0

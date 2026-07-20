@@ -1,0 +1,9 @@
+from flare import *
+
+score_menu = Objective('score_menu')
+
+
+@export('score_menu/incr_score')
+def incr_score():
+    score_menu['#streak'] += 1
+    score_menu['#total'] += 1

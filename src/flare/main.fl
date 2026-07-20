@@ -1,12 +1,23 @@
 from flare import *
+from features.windcharge import *
+from features.score_menu import *
+from features.stunslam_detect import *
 
-temp = Objective('temp', type="dummy");
 
 @load
 def load():
     print("Template reloaded!", color="green");
+    forceload add 0 0
+
+# Runs as the player
+@export('player')
+def player():
+    if use_windcharge[@s] > 0:
+        on_use_windcharge()
+    check_on_ground()
 
 @tick(name="tick")
 def tick():
-    with as(@a):
-        particle electric_spark
+    with as(@a).at(@s):
+        player()
+

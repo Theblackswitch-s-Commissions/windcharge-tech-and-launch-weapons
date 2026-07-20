@@ -1,0 +1,1 @@
+advancement revoke @s only tg:events/stunslam_detect/wind_burst_minecraft_player_hurt_entity
