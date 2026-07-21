@@ -1,23 +1,34 @@
 from flare import *
-from features.windcharge import *
-from features.score_menu import *
-from features.stunslam_detect import *
+from .features.windcharge import *
+from .features.score_menu import *
+from .features.stunslam_detect import *
+from .features.dash_weapons import *
 
 
 @load
 def load():
     print("Template reloaded!", color="green");
+    function #theblackswitch:__version__/easing/enable
+    function #theblackswitch:__version__/clear_item/enable
     forceload add 0 0
 
 # Runs as the player
 @export('player')
 def player():
+    stopsound @s * minecraft:entity.breeze.wind_burst
+    stopsound @s * minecraft:item.mace.smash_ground_heavy
+    stopsound @s * minecraft:item.mace.smash_air
+    stopsound @s * minecraft:item.totem.use
+
     if use_windcharge[@s] > 0:
         on_use_windcharge()
     check_on_ground()
+    dash_weapons_player()
 
 @tick(name="tick")
 def tick():
     with as(@a).at(@s):
-        player()
+        if not @s[name=Stunslam]:
+            player()
+
 

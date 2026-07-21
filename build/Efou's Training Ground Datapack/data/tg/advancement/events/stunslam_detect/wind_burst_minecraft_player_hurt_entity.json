@@ -4,9 +4,6 @@
       "trigger": "minecraft:player_hurt_entity",
       "conditions": {
         "player": {
-          "flags": {
-            "is_flying": false
-          },
           "equipment": {
             "mainhand": {
               "predicates": {
@@ -19,7 +16,9 @@
             }
           },
           "movement": {
-            "fall_distance": 1.5
+            "fall_distance": {
+              "min": 1.5
+            }
           }
         }
       }

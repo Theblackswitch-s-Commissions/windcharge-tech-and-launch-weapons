@@ -14,7 +14,7 @@
         "effect": {
           "type": "minecraft:explode",
           "attribute_to_user": true,
-          "knockback_multiplier": 1,
+          "knockback_multiplier": 4,
           "radius": 3.5,
           "create_fire": false,
           "block_interaction": "trigger",

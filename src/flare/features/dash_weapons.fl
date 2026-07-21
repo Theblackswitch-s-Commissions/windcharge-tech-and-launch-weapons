@@ -1,0 +1,139 @@
+from flare import *
+
+
+cooldown = Objective('dash_cooldown', type="dummy")
+
+# -------------------------------
+#  Dash Launching                            
+# -------------------------------
+
+add_enchantment('internal/dash', {
+	"anvil_cost": 4,
+	"description": {
+		"text": "This enchantment is used internally. Use at own risk!",
+		"color": "red"
+	},
+	"effects": {
+		"minecraft:tick": [
+			{
+				"effect": {
+					"type": "minecraft:apply_impulse",
+					"direction": [
+						0,
+						0,
+						1
+					],
+					"coordinate_scale": [
+						1,
+						1,
+						1
+					],
+					"magnitude": 3.435
+				}
+			},
+			{
+				"effect": {
+					"type": "minecraft:run_function",
+					"function": "tg:dash_weapons/launch/reset"
+				}
+			}
+		]
+	},
+	"max_cost": {
+		"base": 65,
+		"per_level_above_first": 9
+	},
+	"max_level": 3,
+	"min_cost": {
+		"base": 15,
+		"per_level_above_first": 9
+	},
+	"slots": [
+		"saddle"
+	],
+	"supported_items": "minecraft:saddle",
+	"weight": 2
+})
+
+@export('dash_weapons/launch/reset')
+def launch_reset():
+    say hi
+    item replace entity @s saddle with air
+
+@export('dash_weapons/launch/run')
+def launch_run():
+    item replace entity @s saddle with minecraft:saddle[minecraft:enchantments={"tg:internal/dash":1}]
+
+
+# -------------------------------
+#  Give a launchable item                            
+# -------------------------------
+
+@tag('dash_weapons/give')
+@export('dash_weapons/give')
+def give_item(id: macro, components: macro):
+    loot give @s loot {
+        "pools":[
+            {
+                "rolls":1,
+                "entries": [
+                    {
+                        "type": "minecraft:item", 
+                        "name": "$(id)",
+                        "functions": [
+                            {
+                                "function": "set_components",
+                                "components": {
+                                    "minecraft:consumable": {"consume_seconds":999999,"consume_animation":"none","has_consume_particles":False,"sound":"minecraft:intentionally_empty"},
+                                    "minecraft:use_cooldown": {"seconds":5},
+                                    "minecraft:use_effects": {"can_sprint":True,"speed_multiplier":1},
+                                    "minecraft:custom_data": {"tg":{"dashable_weapon":True}},
+                                    "minecraft:custom_name": {"text": "SHIFT + RClick to dash","color":"green"},
+                                    "minecraft:equippable": {"slot": "body","equip_sound":"minecraft:intentionally_empty"}
+                                } 
+                            },
+                            {
+                                "function": "set_components",
+                                "components": $(components)
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+# -------------------------------
+#  Detect right click                            
+# -------------------------------
+
+@export('dash_weapons/player')
+def dash_weapons_player():
+    if cooldown[@s] > 0:
+        cooldown[@s] -= 1
+    
+    if cooldown[@s] == 1:
+        playsound minecraft:entity.experience_orb.pickup master @s ~ ~ ~ 0.1 2
+
+    if cooldown[@s] == 80:
+        title @s actionbar {"text":"[#----]","color":"blue"} 
+    if cooldown[@s] == 60:
+        title @s actionbar {"text":"[##---]","color":"blue"} 
+    if cooldown[@s] == 40:
+        title @s actionbar {"text":"[###--]","color":"blue"} 
+    if cooldown[@s] == 20:
+        title @s actionbar {"text":"[####-]","color":"blue"} 
+    if cooldown[@s] == 1:
+        title @s actionbar {"text":"[#####]","color":"green"} 
+
+
+@right_click_event({"item": {"predicates": {"minecraft:custom_data": {"tg":{"dashable_weapon":True}}}}}, name="dash_weapons/use")
+def use_dash_weapon():
+
+    if not cooldown[@s] > 0:
+        cooldown[@s] = 100
+        title @s actionbar {"text":"[-----]","color":"blue"}
+        with at(@s):
+            particle minecraft:cloud ~ ~ ~ 0.3 0.3 0.3 0.04 5
+            playsound minecraft:entity.breeze.jump master @a ~ ~ ~ 0.5 1
+            launch_run()

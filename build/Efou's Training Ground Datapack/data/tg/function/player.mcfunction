@@ -1,3 +1,7 @@
-execute if score @s use_windcharge matches 1.. run function tg:windcharge/use
-execute positioned ~-0.1 ~ ~-0.1 as @e[type=minecraft:wind_charge,dy=0] positioned ~-0.1 ~ ~-0.1 if entity @s[dy=0] at @s run function tg:with_8
+stopsound @s * minecraft:entity.breeze.wind_burst
+stopsound @s * minecraft:item.mace.smash_ground_heavy
+stopsound @s * minecraft:item.mace.smash_air
+stopsound @s * minecraft:item.totem.use
+execute if score @s use_windcharge matches 1.. run function tg:_player/generated_36
 function tg:stunslam_detect/check_on_ground
+function tg:dash_weapons/player

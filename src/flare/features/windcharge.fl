@@ -1,7 +1,103 @@
 from flare import *
+from ..lib.standards import *
 
 use_windcharge = Objective("use_windcharge", type="minecraft.used:minecraft.wind_charge")
 server_data = Objective('tbs.server_data', add=False)
+temp = Objective('temp', add=False)
+
+is_above_ground = add_predicate('is_above_ground', {
+	"condition": "minecraft:all_of",
+	"terms": [
+		{
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": 0,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -1,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -2,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -3,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -4,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -5,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -6,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		},
+        {
+			"condition": "minecraft:location_check",
+			"offsetX": 0,
+			"offsetY": -7,
+			"offsetZ": 0,
+			"predicate": {
+				"block": {
+					"blocks": "#minecraft:air"
+				}
+			}
+		}
+	]
+})
 
 add_enchantment('internal/windcharge_explode', {
 	"description": {
@@ -19,7 +115,7 @@ add_enchantment('internal/windcharge_explode', {
 				"effect": {
 					"type": "minecraft:explode",
 					"attribute_to_user": True,
-					"knockback_multiplier": 1,
+					"knockback_multiplier": 4,
 					"radius": 3.5,
 					"create_fire": False,
 					"block_interaction": "trigger",
@@ -58,12 +154,13 @@ add_enchantment('internal/windcharge_explode', {
 
 @export('windcharge/explode/reset')
 def explode_reset():
-    runcommand('item replace entity @s armor.feet with air')
+    item replace entity @s armor.feet with air
     kill @s
 
+
 @export('windcharge/explode/run')
-def explode_run():
-    summon minecraft:armor_stand ~ ~ ~ {
+def explode_run(dist: macro):
+    summon minecraft:armor_stand ~ ~-$dist ~ {
         Invisible:1b,
         small:1b,
         "equipment":{
@@ -80,66 +177,74 @@ def explode_run():
             }
         }
     }
+    particle electric_spark ~ ~-$dist ~
 
 
+prev_pos_x = Objective('prev_pos_x', type="dummy");
+prev_pos_y = Objective('prev_pos_y', type="dummy");
+prev_pos_z = Objective('prev_pos_z', type="dummy");
+
+motion_x = Objective('motion_x', type="dummy");
+motion_y = Objective('motion_y', type="dummy");
+motion_z = Objective('motion_z', type="dummy");
+
+
+@tick(name="windcharge/calc_player_motion")
+def calc_player_motion():
+    with @a:
+        temp['#curr_pos_x', 3] = @s.Pos[0]
+        temp['#curr_pos_y', 3] = @s.Pos[1]
+        temp['#curr_pos_z', 3] = @s.Pos[2]
+
+        motion_x[@s, 3] = temp["#curr_pos_x", 3] - prev_pos_x[@s, 3]
+        motion_y[@s, 3] = temp["#curr_pos_y", 3] - prev_pos_y[@s, 3]
+        motion_z[@s, 3] = temp["#curr_pos_z", 3] - prev_pos_z[@s, 3]
+
+        prev_pos_x[@s, 3] = temp["#curr_pos_x", 3]
+        prev_pos_y[@s, 3] = temp["#curr_pos_y", 3]
+        prev_pos_z[@s, 3] = temp["#curr_pos_z", 3]
+    
 
 # -------------------------------
 #  Windcharge checks / summons                            
 # -------------------------------
 
-@event("consume_item", name="windcharge/use")
 def on_use_windcharge():
+    say use_windcharge
     use_windcharge[@s] = 0;
 
+    if server_data["windcharge_enabled"] != 1:
+        return fail
+
     # Modify the windcharge
-    marker = @n[type=marker,tag=motion_temp]
-    windcharge = @n[type=minecraft:wind_charge,tag=!summoned]
+    windcharge = @n[type=minecraft:wind_charge]
 
-    with positioned(0.0, 0.0, 0.0).positioned(^ ^ ^0.5):
-        summon marker ~ ~ ~ {Tags:[motion_temp]}
+    temp["#hor_motion"] = motion_x[@s] * motion_x[@s] + motion_z[@s] * motion_z[@s]
 
-
-    with rotated(@s).positioned(~ ~1.55 ~).as(windcharge):
-        
-        with positioned(^ ^ ^1.73).summon('minecraft:wind_charge'):
-            tag @s add summoned
-            tag @s add inside
-            @s.acceleration_power = 0.3
-            @s.Owner = windcharge.Owner
-            for i in range(3):
-                @s.Motion[i] = marker.Pos[i]
-
-        windcharge.kill()
-        @e[type=marker,tag=motion_temp].kill()
-
-def check_windcharge_collision():
-    # check for collission
-    with positioned(~-0.3 ~ ~-0.3).as(@e[type=minecraft:wind_charge,dy=0]).positioned(~-0.7 ~ ~-0.7).if(@s[dy=0]).at(@s):
-        @s.kill()
-        explode_run()
-
-@export('windcharge/raycast/init')
-def raycast_init():
+    if motion_y[@s] <= -250 and temp["#hor_motion"] <= 250000 and is_above_ground and @s[x_rotation=70..]:
     
-    temp = 60
+        # calculate the distance of the explosion
+        explosion_multiplier = 4
+        temp["dist", 3] = 7 * (explosion_multiplier + 0.8 * (motion_y[@s, 3] + 0.08)) / explosion_multiplier
+        if temp["dist", 3] < 0:
+            temp["dist", 3] = 0
 
-@export('windcharge/raycast')
-def raycast():
-    temp = score(addr="#loop_count temp")
-    temp -= 1
-    if temp > 0:
-        with positioned(^ ^ ^0.1):
-            raycast()
+        explode_run(temp["dist", 3])
+            
+        windcharge.kill()
+
 
 
 # -------------------------------
 #  Enabling / disabling                            
 # -------------------------------
 
+@tag('windcharge/enable')
 @export('windcharge/enable')
 def enable():
-    server_data['#windcharge_enabled'] = 1
+    server_data['windcharge_enabled'] = 1
 
+@tag('windcharge/disable')
 @export('windcharge/disable')
-def enable():
-    server_data['#windcharge_enabled'] = 0
+def disable():
+    server_data['windcharge_enabled'] = 0

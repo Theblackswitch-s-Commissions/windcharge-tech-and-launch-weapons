@@ -1,1 +1,1 @@
-scoreboard players set #windcharge_enabled tbs.server_data 1
+scoreboard players set windcharge_enabled tbs.server_data 1

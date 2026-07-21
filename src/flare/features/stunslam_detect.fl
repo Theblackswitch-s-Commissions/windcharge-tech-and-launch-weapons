@@ -1,4 +1,7 @@
 from flare import *
+from .score_menu import *
+from .windcharge import *
+from ..lib.standards import *
 
 # -------------------------------
 #  Detect shield blocking                            
@@ -29,9 +32,7 @@ def block_shield():
 @event('minecraft:player_hurt_entity',
     {
         "player": {
-            "flags": {
-                "is_flying": False
-            },
+
             "equipment": {
                 "mainhand": {
                     "predicates": {
@@ -44,25 +45,32 @@ def block_shield():
                 }
             },
             "movement": {
-                "fall_distance": 1.5
+                "fall_distance": {
+                    "min": 1.5
+                }
             }
         }
     },
     name="stunslam_detect/wind_burst"
 )
 def wind_burst():
-    if @s[tag=blocked]:
-        pass
+    say wind_burst
+    with at(@s):
+        if @s[tag=block_shield]:
+            incr_score()
+            @s.remove_tag('block_shield')
+            @s.add_tag('new_round')
 
 # -------------------------------
 #  Detect landing                            
 # -------------------------------
 
+on_ground_timer = Objective('on_ground_timer')
+
 is_on_ground = add_predicate('stunslam_detect/on_ground', {
 	"condition": "minecraft:entity_properties",
 	"entity": "this",
 	"predicate": {
-		"can_see_sky": True,
 		"flags": {
 			"is_on_ground": True
 		}
@@ -72,4 +80,15 @@ is_on_ground = add_predicate('stunslam_detect/on_ground', {
 @export('stunslam_detect/check_on_ground')
 def check_on_ground():
     if is_on_ground:
-        @s.remove_tag('block_shield')
+        on_ground_timer[@s] += 1
+    else:
+        on_ground_timer[@s] = 0
+
+    if on_ground_timer[@s] >= 10 or motion_y[@s] >= 15000:
+        if @s[tag=new_round]:
+            @s.remove_tag('new_round')
+            @s.remove_tag('block_shield')
+            reset_streak()
+
+    if motion_y[@s] >= 15000:
+        @s.add_tag('new_round')

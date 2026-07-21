@@ -2,7 +2,6 @@
   "condition": "minecraft:entity_properties",
   "entity": "this",
   "predicate": {
-    "can_see_sky": true,
     "flags": {
       "is_on_ground": true
     }
