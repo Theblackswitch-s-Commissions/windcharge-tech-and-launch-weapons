@@ -1,0 +1,393 @@
+from flare import *
+
+slam_timer = Objective('slam_timer')
+
+# -------------------------------
+#  Dash Launching                            
+# -------------------------------
+
+add_enchantment('internal/dash', {
+	"anvil_cost": 4,
+	"description": {
+		"text": "This enchantment is used internally. Use at own risk!",
+		"color": "red"
+	},
+	"effects": {
+		"minecraft:tick": [
+			{
+				"effect": {
+					"type": "minecraft:apply_impulse",
+					"direction": [
+						0,
+						0,
+						1
+					],
+					"coordinate_scale": [
+						1,
+						1,
+						1
+					],
+					"magnitude": 2.435
+				}
+			},
+			{
+				"effect": {
+					"type": "minecraft:run_function",
+					"function": "tg:special_weapons/dash/reset"
+				}
+			}
+		]
+	},
+	"max_cost": {
+		"base": 65,
+		"per_level_above_first": 9
+	},
+	"max_level": 3,
+	"min_cost": {
+		"base": 15,
+		"per_level_above_first": 9
+	},
+	"slots": [
+		"saddle"
+	],
+	"supported_items": "minecraft:saddle",
+	"weight": 2
+})
+
+@export('special_weapons/dash/reset')
+def dash_reset():
+    item replace entity @s saddle with air
+
+@export('special_weapons/dash/run')
+def dash_run():
+    item replace entity @s saddle with minecraft:saddle[minecraft:enchantments={"tg:internal/dash":1}]
+
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+add_enchantment('internal/slam', {
+	"anvil_cost": 4,
+	"description": {
+		"text": "This enchantment is used internally. Use at own risk!",
+		"color": "red"
+	},
+	"effects": {
+		"minecraft:tick": [
+			{
+				"effect": {
+					"type": "minecraft:explode",
+					"knockback_multiplier": 12,
+					"offset": [
+						0,
+						2,
+						0
+					],
+					"radius": 2,
+					"create_fire": False,
+					"block_interaction": "none",
+					"small_particle": {
+						"type": "minecraft:electric_spark"
+					},
+					"large_particle": {
+						"type": "minecraft:electric_spark"
+					},
+					"sound": "minecraft:intentionally_empty"
+				}
+			},
+			{
+				"effect": {
+					"type": "minecraft:run_function",
+					"function": "tg:special_weapons/slam/reset"
+				}
+			}
+		]
+	},
+	"max_cost": {
+		"base": 65,
+		"per_level_above_first": 9
+	},
+	"max_level": 3,
+	"min_cost": {
+		"base": 15,
+		"per_level_above_first": 9
+	},
+	"slots": [
+		"saddle"
+	],
+	"supported_items": "minecraft:saddle",
+	"weight": 2
+})
+
+@export('special_weapons/slam/reset')
+def slam_reset():
+    item replace entity @s saddle with air
+
+@export('special_weapons/slam/run')
+def slam_run():
+    item replace entity @s saddle with minecraft:saddle[minecraft:enchantments={"tg:internal/slam":1}]
+
+
+
+# -------------------------------
+#  Give a launchable item                            
+# -------------------------------
+
+@tag(f'special_weapons/give_dash')
+@export(f'special_weapons/give_dash')
+def give_dash(id: macro, components: macro):
+    loot give @s loot {
+        "pools":[
+            {
+                "rolls":1,
+                "entries": [
+                    {
+                        "type": "minecraft:item", 
+                        "name": "$(id)",
+                        "functions": [
+                            {
+                                "function": "set_components",
+                                "components": {
+                                    "minecraft:consumable": {"consume_seconds":0.01,"animation":"none","has_consume_particles":False,"sound":"minecraft:intentionally_empty"},
+                                    "minecraft:use_cooldown": {"seconds":5},
+                                    "minecraft:use_effects": {"can_sprint":True,"speed_multiplier":1},
+                                    "minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "dash"}},
+                                    "minecraft:custom_name": {"text": "RClick to dash","color":"green"},
+                                    "minecraft:equippable": {"slot": "body","equip_sound":"minecraft:intentionally_empty"}
+                                } 
+                            },
+                            {
+                                "function": "set_components",
+                                "components": $(components)
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+@tag(f'special_weapons/give_cobweb')
+@export(f'special_weapons/give_cobweb')
+def give_cobweb(id: macro, components: macro):
+    loot give @s loot {
+        "pools":[
+            {
+                "rolls":1,
+                "entries": [
+                    {
+                        "type": "minecraft:item", 
+                        "name": "$(id)",
+                        "functions": [
+                            {
+                                "function": "set_components",
+                                "components": {
+                                    "minecraft:consumable": {"consume_seconds": 0.01,"animation":"none","has_consume_particles":False,"sound":"minecraft:intentionally_empty"},
+                                    "minecraft:use_cooldown": {"seconds":5},
+                                    "minecraft:use_effects": {"can_sprint":True,"speed_multiplier":1},
+                                    "minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "cobweb"}},
+                                    "minecraft:custom_name": {"text": "RClick to clear (7x7x7)","color":"green"},
+                                    "minecraft:equippable": {"slot": "body","equip_sound":"minecraft:intentionally_empty"}
+                                } 
+                            },
+                            {
+                                "function": "set_components",
+                                "components": $(components)
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+@tag(f'special_weapons/give_slam')
+@export(f'special_weapons/give_slam')
+def give_slam(id: macro, components: macro):
+    loot give @s loot {
+        "pools":[
+            {
+                "rolls":1,
+                "entries": [
+                    {
+                        "type": "minecraft:item", 
+                        "name": "$(id)",
+                        "functions": [
+                            {
+                                "function": "set_components",
+                                "components": {
+                                    "minecraft:consumable": {"consume_seconds":0.01,"animation":"none","has_consume_particles":False,"sound":"minecraft:intentionally_empty"},
+                                    "minecraft:use_cooldown": {"seconds":5},
+                                    "minecraft:use_effects": {"can_sprint":True,"speed_multiplier":1},
+                                    "minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "slam"}},
+                                    "minecraft:custom_name": {"text": "RClick to apply a slam attack","color":"green"},
+                                    "minecraft:equippable": {"slot": "body","equip_sound":"minecraft:intentionally_empty"}
+                                } 
+                            },
+                            {
+                                "function": "set_components",
+                                "components": $(components)
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+# -------------------------------
+#  Run tick                            
+# -------------------------------
+
+@export('special_weapons/tick', name="special_weapons/tick")
+def special_weapons_tick():
+    
+    if slam_timer[@s] > 0:
+        slam_tick()
+
+    # copy the item to the body slot
+    if holding_weapon_mainhand:
+        item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+    elif holding_weapon_offhand:
+        item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+
+    # give back the item if needed
+    if @s[tag=GIVE_BACK]:
+        @s.remove_tag('GIVE_BACK')
+
+        execute unless items entity @s weapon.mainhand * run return run item replace entity @s weapon.mainhand from entity @s armor.body $no_clear_when_dropped
+        execute unless items entity @s weapon.offhand * run return run item replace entity @s weapon.offhand from entity @s armor.body $no_clear_when_dropped
+
+        @s.add_tag('SELECT')
+        with summon('chest_minecart'):
+            item replace entity @s container.0 from entity @p[tag=SELECT] armor.body
+            kill @s
+        @s.remove_tag('SELECT')
+
+
+# -------------------------------
+#  Detect right click                            
+# -------------------------------
+
+holding_weapon_mainhand = add_predicate('holding/weapon/mainhand', {
+	"condition": "minecraft:entity_properties",
+	"entity": "this",
+	"predicate": {
+		"equipment": {
+			"mainhand": {
+				"predicates": {
+					"minecraft:custom_data": {
+                        "tg":{
+                            "special_weapon":True
+                        }
+                    }
+				}
+			}
+		}
+	}
+})
+
+holding_weapon_offhand = add_predicate('holding/weapon/offhand', {
+	"condition": "minecraft:entity_properties",
+	"entity": "this",
+	"predicate": {
+		"equipment": {
+			"mainhand": {
+				"predicates": {
+					"minecraft:custom_data": {
+                        "tg":{
+                            "special_weapon":True
+                        }
+                    }
+				}
+			}
+		}
+	}
+})
+
+clear_when_dropped = add_item_modifier('clear_when_dropped', {
+	"function": "minecraft:set_custom_data",
+	"tag": {
+		"tbs.clear_when_dropped": True
+	}
+})
+
+no_clear_when_dropped = add_item_modifier('clear_when_dropped', {
+	"function": "minecraft:set_custom_data",
+	"tag": {
+		"tbs.clear_when_dropped": False
+	}
+})
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+@event('minecraft:consume_item', {"item": {"predicates": {"minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "dash"}}}}}, name="special_weapons/dash")
+def use_dash_weapon():
+    with at(@s):
+        particle minecraft:cloud ~ ~ ~ 0.3 0.3 0.3 0.04 5
+        playsound minecraft:entity.breeze.jump master @a ~ ~ ~ 0.5 1
+        dash_run()
+
+        if holding_weapon_mainhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+        elif holding_weapon_offhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+
+        if @s[gamemode=survival] or @s[gamemode=adventure]:
+            @s.add_tag('GIVE_BACK')
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+@event('minecraft:consume_item', {"item": {"predicates": {"minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "slam"}}}}}, name="special_weapons/slam")
+def use_slam_weapon():
+    with at(@s):
+        particle minecraft:trial_spawner_detection ~ ~ ~ 0.3 0.3 0.3 0 50 force
+        particle minecraft:gust ~ ~ ~ 0.2 0.1 0.2 0 3
+        particle minecraft:item_cobweb ~ ~ ~ 3 3 3 0 30 force
+
+        playsound minecraft:entity.breeze.jump master @a ~ ~ ~ 0.8 0.7
+        playsound minecraft:item.armor.equip_chain master @a ~ ~ ~ 1 0.9
+        playsound minecraft:block.trial_spawner.detect_player master @a ~ ~ ~ 0.7 1.2
+
+        slam_timer[@s] = 16  
+        effect give @s levitation 1 60
+
+        if holding_weapon_mainhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+        elif holding_weapon_offhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+
+        if @s[gamemode=survival] or @s[gamemode=adventure]:
+            @s.add_tag('GIVE_BACK')
+
+@export('special_weapons/slam/anim')
+def slam_tick():
+
+    if slam_timer[@s] == 1:
+        playsound minecraft:entity.warden.sonic_boom master @a ~ ~ ~ 0.25 2
+
+        effect clear @s levitation
+        slam_run()
+
+    slam_timer[@s] -= 1
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+@event('minecraft:consume_item', {"item": {"predicates": {"minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "cobweb"}}}}}, name="special_weapons/cobweb")
+def use_cobweb_weapon():
+    with at(@s):
+        particle minecraft:item_cobweb ~ ~ ~ 3 3 3 0 20 force
+        particle minecraft:white_ash ~ ~ ~ 3 3 3 0 50 force
+
+        playsound minecraft:block.cobweb.break master @a ~ ~ ~ 1 0.9
+        playsound minecraft:entity.horse.armor master @a ~ ~ ~ 0.2 1.4
+
+        fill ~-3 ~-3 ~-3 ~3 ~3 ~3 air replace minecraft:cobweb
+
+        if holding_weapon_mainhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+        elif holding_weapon_offhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+
+        if @s[gamemode=survival] or @s[gamemode=adventure]:
+            @s.add_tag('GIVE_BACK')

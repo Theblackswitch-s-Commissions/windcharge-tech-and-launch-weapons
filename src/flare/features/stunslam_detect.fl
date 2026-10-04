@@ -54,7 +54,6 @@ def block_shield():
     name="stunslam_detect/wind_burst"
 )
 def wind_burst():
-    say wind_burst
     with at(@s):
         if @s[tag=block_shield]:
             incr_score()

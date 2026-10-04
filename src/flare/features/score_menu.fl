@@ -40,7 +40,6 @@ add_loot_table('item/score_menu_placer', {
 @tick
 def check_place_score_menu():
     with @e[type=marker,tag=place_score_menu_here].at(@s).positioned(~ ~1 ~):
-        say place
         @s.kill()
         place()
         with @e[type=text_display,tag=score_menu].at(@s).rotated(@p).rotated('~ -20'):
@@ -199,7 +198,6 @@ def update_menu():
 
     execute unless score #streak score_menu <= #record score_menu run scoreboard players operation #record score_menu = #streak score_menu
 
-    say incr score
 
     modify_streak(score_menu['#streak'])
     modify_record(score_menu['#record'])
@@ -234,7 +232,6 @@ def incr_score():
         @s.transformation.scale = nbt[3.5f, 3.5f, 3.5f]
         @s.interpolation_duration = 1
         with schedule("2t", append=False), @n[type=text_display,tag=streak_counter]:
-                say hi
                 @s.transformation.scale = nbt[3.0f, 3.0f, 3.0f]
                 @s.interpolation_duration = 3
                 @s.start_interpolation = 0
@@ -256,7 +253,7 @@ def reset():
     score_menu['#streak'] = 0
     score_menu['#total'] = 0
     score_menu['#correct'] = 0
-    score_menu['#record'] += 1
+    score_menu['#record'] = 0
 
     modify_streak(0)
     modify_success_rate('NaN', 'green')

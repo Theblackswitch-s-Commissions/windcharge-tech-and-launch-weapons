@@ -19,13 +19,13 @@
             1,
             1
           ],
-          "magnitude": 1.374
+          "magnitude": 2.435
         }
       },
       {
         "effect": {
           "type": "minecraft:run_function",
-          "function": "tg:dash_weapons/launch/reset"
+          "function": "tg:special_weapons/dash/reset"
         }
       }
     ]

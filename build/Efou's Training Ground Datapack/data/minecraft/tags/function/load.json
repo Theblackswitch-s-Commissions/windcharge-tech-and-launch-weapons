@@ -2,7 +2,6 @@
   "values": [
     "tg:__constants__",
     "tg:load",
-    "tg:__init__",
     "#theblackswitch:load"
   ]
 }

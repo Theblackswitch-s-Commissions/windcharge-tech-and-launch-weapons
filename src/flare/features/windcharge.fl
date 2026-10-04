@@ -180,13 +180,9 @@ def explode_run(dist: macro):
     particle electric_spark ~ ~-$dist ~
 
 
-prev_pos_x = Objective('prev_pos_x', type="dummy");
 prev_pos_y = Objective('prev_pos_y', type="dummy");
-prev_pos_z = Objective('prev_pos_z', type="dummy");
 
-motion_x = Objective('motion_x', type="dummy");
 motion_y = Objective('motion_y', type="dummy");
-motion_z = Objective('motion_z', type="dummy");
 
 
 @tick(name="windcharge/calc_player_motion")
@@ -196,21 +192,17 @@ def calc_player_motion():
         temp['#curr_pos_y', 3] = @s.Pos[1]
         temp['#curr_pos_z', 3] = @s.Pos[2]
 
-        motion_x[@s, 3] = temp["#curr_pos_x", 3] - prev_pos_x[@s, 3]
         motion_y[@s, 3] = temp["#curr_pos_y", 3] - prev_pos_y[@s, 3]
-        motion_z[@s, 3] = temp["#curr_pos_z", 3] - prev_pos_z[@s, 3]
 
-        prev_pos_x[@s, 3] = temp["#curr_pos_x", 3]
         prev_pos_y[@s, 3] = temp["#curr_pos_y", 3]
-        prev_pos_z[@s, 3] = temp["#curr_pos_z", 3]
     
 
 # -------------------------------
 #  Windcharge checks / summons                            
 # -------------------------------
 
+@export('windcharge/use')
 def on_use_windcharge():
-    say use_windcharge
     use_windcharge[@s] = 0;
 
     if server_data["windcharge_enabled"] != 1:
@@ -219,9 +211,7 @@ def on_use_windcharge():
     # Modify the windcharge
     windcharge = @n[type=minecraft:wind_charge]
 
-    temp["#hor_motion"] = motion_x[@s] * motion_x[@s] + motion_z[@s] * motion_z[@s]
-
-    if motion_y[@s] <= -250 and temp["#hor_motion"] <= 250000 and is_above_ground and @s[x_rotation=70..]:
+    if motion_y[@s] <= -250 and is_above_ground and @s[x_rotation=70..]:
     
         # calculate the distance of the explosion
         explosion_multiplier = 4

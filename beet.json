@@ -13,7 +13,7 @@
     "id": "tg",
     "name": "tg",
     "description": "",
-    "version": "0.0.1a",
+    "version": "1.0.2a",
     "require": [
         "flare"
     ],
