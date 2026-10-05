@@ -4,6 +4,7 @@ scoreboard objectives add motion_y dummy
 scoreboard objectives add score_menu dummy
 scoreboard objectives add on_ground_timer dummy
 scoreboard objectives add slam_timer dummy
+scoreboard objectives add poison_timer dummy
 scoreboard objectives add __tg__temp__ dummy
 scoreboard objectives add __tg__constant__ dummy
 scoreboard objectives add __tg__vars__ dummy

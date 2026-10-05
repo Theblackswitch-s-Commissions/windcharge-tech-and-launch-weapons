@@ -1,6 +1,10 @@
 from flare import *
 
 slam_timer = Objective('slam_timer')
+poison_timer = Objective('poison_timer')
+slow_tick = Objective('tbs.slow_tick', add=False)
+random_delay = Objective('tbs.random_delay', add=False)
+ID = Objective('tbs.ID', add=False)
 
 # -------------------------------
 #  Dash Launching                            
@@ -77,7 +81,7 @@ add_enchantment('internal/slam', {
 			{
 				"effect": {
 					"type": "minecraft:explode",
-					"knockback_multiplier": 12,
+					"knockback_multiplier": 9,
 					"offset": [
 						0,
 						2,
@@ -127,7 +131,64 @@ def slam_reset():
 def slam_run():
     item replace entity @s saddle with minecraft:saddle[minecraft:enchantments={"tg:internal/slam":1}]
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
+add_enchantment('internal/poison', {
+	"anvil_cost": 4,
+	"description": {
+		"text": "This enchantment is used internally. Use at own risk!",
+		"color": "red"
+	},
+	"effects": {
+		"minecraft:tick": [
+			{
+				"effect": {
+					"type": "minecraft:apply_impulse",
+					"direction": [
+						0,
+						0,
+						1
+					],
+					"coordinate_scale": [
+						1,
+						1,
+						1
+					],
+					"magnitude": 2.635
+				}
+			},
+			{
+				"effect": {
+					"type": "minecraft:run_function",
+					"function": "tg:special_weapons/poison/reset"
+				}
+			}
+		]
+	},
+	"max_cost": {
+		"base": 65,
+		"per_level_above_first": 9
+	},
+	"max_level": 3,
+	"min_cost": {
+		"base": 15,
+		"per_level_above_first": 9
+	},
+	"slots": [
+		"saddle"
+	],
+	"supported_items": "minecraft:saddle",
+	"weight": 2
+})
+
+@export('special_weapons/poison/reset')
+def poison_reset():
+    item replace entity @s saddle with air
+
+@export('special_weapons/poison/run')
+def poison_run():
+    item replace entity @s saddle with minecraft:saddle[minecraft:enchantments={"tg:internal/poison":1}]
+    tag @s add poison_dash
 
 # -------------------------------
 #  Give a launchable item                            
@@ -235,6 +296,41 @@ def give_slam(id: macro, components: macro):
         ]
     }
 
+@tag(f'special_weapons/give_poison')
+@export(f'special_weapons/give_poison')
+def give_poison(id: macro, components: macro):
+    loot give @s loot {
+        "pools":[
+            {
+                "rolls":1,
+                "entries": [
+                    {
+                        "type": "minecraft:item", 
+                        "name": "$(id)",
+                        "functions": [
+                            {
+                                "function": "set_components",
+                                "components": {
+                                    "minecraft:consumable": {"consume_seconds":0.01,"animation":"none","has_consume_particles":False,"sound":"minecraft:intentionally_empty"},
+                                    "minecraft:use_cooldown": {"seconds":5},
+                                    "minecraft:use_effects": {"can_sprint":True,"speed_multiplier":1},
+                                    "minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "poison"}},
+                                    "minecraft:custom_name": {"text": "RClick to poison dash","color":"green"},
+                                    "minecraft:equippable": {"slot": "body","equip_sound":"minecraft:intentionally_empty"}
+                                } 
+                            },
+                            {
+                                "function": "set_components",
+                                "components": $(components)
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+
 # -------------------------------
 #  Run tick                            
 # -------------------------------
@@ -244,6 +340,8 @@ def special_weapons_tick():
     
     if slam_timer[@s] > 0:
         slam_tick()
+
+    poison_weapon_tick()
 
     # copy the item to the body slot
     if holding_weapon_mainhand:
@@ -319,6 +417,20 @@ no_clear_when_dropped = add_item_modifier('clear_when_dropped', {
 	}
 })
 
+# -------------------------------
+#  Detect on ground                            
+# -------------------------------
+
+is_on_ground = add_predicate('on_ground', {
+	"condition": "minecraft:entity_properties",
+	"entity": "this",
+	"predicate": {
+		"flags": {
+			"is_on_ground": True
+		}
+	}
+})
+
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 @event('minecraft:consume_item', {"item": {"predicates": {"minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "dash"}}}}}, name="special_weapons/dash")
@@ -382,7 +494,7 @@ def use_cobweb_weapon():
         playsound minecraft:block.cobweb.break master @a ~ ~ ~ 1 0.9
         playsound minecraft:entity.horse.armor master @a ~ ~ ~ 0.2 1.4
 
-        fill ~-3 ~-3 ~-3 ~3 ~3 ~3 air replace minecraft:cobweb
+        fill ~-4 ~-4 ~-4 ~4 ~4 ~4 air replace minecraft:cobweb
 
         if holding_weapon_mainhand:
             item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
@@ -391,3 +503,66 @@ def use_cobweb_weapon():
 
         if @s[gamemode=survival] or @s[gamemode=adventure]:
             @s.add_tag('GIVE_BACK')
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+@event('minecraft:consume_item', {"item": {"predicates": {"minecraft:custom_data": {"tg":{"special_weapon":True, "weapon": "poison"}}}}}, name="special_weapons/poison")
+def use_poison_weapon():
+    with at(@s):
+        particle minecraft:cloud ~ ~ ~ 0.3 0.3 0.3 0.1 10
+
+        playsound minecraft:block.trial_spawner.spawn_item master @a ~ ~ ~ 0.5 1
+        playsound minecraft:block.sculk.hit master @a ~ ~ ~ 1 0.8
+        playsound minecraft:entity.wind_charge.wind_burst master @a ~ ~ ~ 0.2 0.8
+
+        poison_run()
+
+        @s.add_tag('doing_a_poison_dash')
+        @s.add_tag('launching')
+
+        if holding_weapon_mainhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+        elif holding_weapon_offhand:
+            item replace entity @s armor.body from entity @s weapon.mainhand $clear_when_dropped
+
+        if @s[gamemode=survival] or @s[gamemode=adventure]:
+            @s.add_tag('GIVE_BACK')
+
+@export('special_weapons/poison/tick')
+def poison_weapon_tick():
+
+    if @s[tag=doing_a_poison_dash,tag=!launching] and is_on_ground:
+        @s.remove_tag('doing_a_poison_dash')
+
+    @s.remove_tag('launching')
+
+    with @e[type=marker,tag=poison_cloud].at(@s):
+        ID["#search"] = ID[@s]
+
+        if slow_tick['#10'] == random_delay["#10"]:
+            particle minecraft:entity_effect{"color":[0.5, 0.7, 0.5, 1.0]} ~ ~ ~ 0.3 0.3 0.3 0.01 10
+            particle minecraft:dust{"color":[0.2, 0.5, 0.2],"scale":3} ~ ~ ~ 0.4 0.4 0.4 0 1
+
+        effect give @e[distance=..4,type=!player] minecraft:poison 5 0
+        effect give @a[distance=..4,predicate=!theblackswitch:__version__/__patch__/player_id/match_search] minecraft:poison 5 0
+
+        poison_timer[@s] += 1
+
+        if poison_timer[@s] == 80:
+            kill @s
+
+
+    if @s[tag=doing_a_poison_dash]:
+        ID["#search"] = ID[@s]
+        
+        summon marker ~ ~ ~ {Tags:[poison_cloud,INIT]}
+
+        with @e[type=marker,tag=poison_cloud,tag=INIT]:
+            ID[@s] = ID["#search"]
+            @s.remove_tag('INIT')
+
+
+        particle minecraft:dust{"color":[0.2, 0.5, 0.2],"scale":4} ~ ~ ~ 0.5 0.5 0.5 0 6
+        if slow_tick["#3"] == random_delay["#3"]:
+            playsound minecraft:block.sculk.hit master @a ~ ~ ~ 0.2 0.9

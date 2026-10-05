@@ -8,29 +8,24 @@
     "minecraft:tick": [
       {
         "effect": {
-          "type": "minecraft:explode",
-          "knockback_multiplier": 9,
-          "offset": [
+          "type": "minecraft:apply_impulse",
+          "direction": [
             0,
-            2,
-            0
+            0,
+            1
           ],
-          "radius": 2,
-          "create_fire": false,
-          "block_interaction": "none",
-          "small_particle": {
-            "type": "minecraft:electric_spark"
-          },
-          "large_particle": {
-            "type": "minecraft:electric_spark"
-          },
-          "sound": "minecraft:intentionally_empty"
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": 2.635
         }
       },
       {
         "effect": {
           "type": "minecraft:run_function",
-          "function": "tg:special_weapons/slam/reset"
+          "function": "tg:special_weapons/poison/reset"
         }
       }
     ]

@@ -1,4 +1,5 @@
 execute if score @s slam_timer matches 1.. run function tg:special_weapons/slam/anim
+function tg:special_weapons/poison/tick
 scoreboard players set !elif11 __tg__temp__ 0
 execute if score !elif11 __tg__temp__ matches 0 if predicate tg:holding/weapon/mainhand run function tg:special_weapons/_tick/generated_31
 execute if score !elif11 __tg__temp__ matches 0 if predicate tg:holding/weapon/offhand run function tg:special_weapons/_tick/generated_32

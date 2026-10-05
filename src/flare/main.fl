@@ -10,6 +10,7 @@ def load():
     print("Template reloaded!", color="green");
     function #theblackswitch:__version__/easing/enable
     function #theblackswitch:__version__/clear_item/enable
+    function #theblackswitch:__version__/slow_tick/enable
     forceload add 0 0
 
 # Runs as the player
